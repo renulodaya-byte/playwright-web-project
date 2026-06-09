@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Playwright Flow</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 30px 20px; }
+  h1 { text-align: center; font-size: 22px; color: #38bdf8; margin-bottom: 6px; }
+  .subtitle { text-align: center; color: #94a3b8; font-size: 13px; margin-bottom: 36px; }
+
+  .flow { display: flex; flex-direction: column; align-items: center; gap: 0; }
+
+  /* ── boxes ── */
+  .box { border-radius: 12px; padding: 14px 28px; font-size: 14px; font-weight: 600;
+         text-align: center; min-width: 260px; max-width: 360px; position: relative; }
+  .box .sub { font-size: 11px; font-weight: 400; color: rgba(255,255,255,0.7); margin-top: 4px; }
+
+  .config   { background: #1e3a5f; border: 2px solid #38bdf8; color: #bae6fd; }
+  .spec     { background: #1a3a2a; border: 2px solid #4ade80; color: #bbf7d0; }
+  .pom      { background: #3b1f5e; border: 2px solid #c084fc; color: #e9d5ff; }
+  .browser  { background: #3b2a00; border: 2px solid #fbbf24; color: #fef3c7; }
+  .action   { background: #1e2a3b; border: 2px solid #60a5fa; color: #bfdbfe; }
+  .assert   { background: #1e3b2a; border: 2px solid #34d399; color: #a7f3d0; }
+  .pass     { background: #14532d; border: 2px solid #22c55e; color: #dcfce7; }
+  .fail     { background: #450a0a; border: 2px solid #ef4444; color: #fecaca; }
+
+  /* ── arrows ── */
+  .arrow { display: flex; flex-direction: column; align-items: center; height: 44px; }
+  .arrow-line { width: 2px; flex: 1; background: #334155; }
+  .arrow-head { width: 0; height: 0; border-left: 7px solid transparent;
+                border-right: 7px solid transparent; border-top: 10px solid #334155; }
+  .arrow-label { font-size: 10px; color: #64748b; position: absolute; left: calc(50% + 140px);
+                 transform: translateY(-28px); white-space: nowrap; }
+
+  /* ── fork (pass/fail) ── */
+  .fork { display: flex; align-items: flex-start; gap: 40px; margin-top: 0; }
+  .fork-branch { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .fork-line { width: 2px; height: 36px; background: #334155; }
+  .fork-head { width: 0; height: 0; border-left: 7px solid transparent;
+               border-right: 7px solid transparent; border-top: 10px solid #334155; }
+  .horizontal { display: flex; align-items: center; height: 2px; }
+  .h-line { height: 2px; width: 80px; background: #334155; }
+
+  /* ── section labels ── */
+  .section-row { display: flex; align-items: center; gap: 12px; margin: 12px 0 4px; }
+  .section-label { font-size: 10px; font-weight: 700; letter-spacing: 1px;
+                   color: #475569; text-transform: uppercase; white-space: nowrap; }
+  .section-line { height: 1px; background: #1e293b; width: 80px; }
+
+  /* ── file chips ── */
+  .chip { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 99px;
+          margin-top: 5px; font-weight: 700; letter-spacing: 0.5px; }
+  .chip-blue  { background: #0ea5e9; color: #fff; }
+  .chip-green { background: #22c55e; color: #fff; }
+  .chip-purple{ background: #a855f7; color: #fff; }
+
+  /* ── detail panel ── */
+  .details { margin-top: 50px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .detail-card { background: #1e293b; border-radius: 10px; padding: 16px; border-top: 3px solid; }
+  .detail-card h3 { font-size: 13px; margin-bottom: 10px; }
+  .detail-card ul { list-style: none; }
+  .detail-card ul li { font-size: 12px; color: #94a3b8; padding: 4px 0;
+                       border-bottom: 1px solid #0f172a; }
+  .detail-card ul li:last-child { border-bottom: none; }
+  .detail-card ul li span { color: #e2e8f0; font-family: monospace; font-size: 11px; }
+  .c1 { border-color: #38bdf8; } .c1 h3 { color: #38bdf8; }
+  .c2 { border-color: #c084fc; } .c2 h3 { color: #c084fc; }
+  .c3 { border-color: #4ade80; } .c3 h3 { color: #4ade80; }
+</style>
+</head>
+<body>
+
+<h1>🎭 How Playwright Works</h1>
+<p class="subtitle">From config file → browser actions → pass or fail</p>
+
+<div class="flow">
+
+  <!-- CONFIG -->
+  <div class="box config">
+    ⚙️ playwright.config.js
+    <div class="sub">Sets browser · baseURL · timeout · headless · slowMo</div>
+    <span class="chip chip-blue">SETTINGS</span>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- SPEC FILE -->
+  <div class="box spec">
+    📋 login.spec.js
+    <div class="sub">Defines test groups (describe) and individual tests (test)</div>
+    <span class="chip chip-green">TEST FILE</span>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- BEFORE EACH -->
+  <div class="box action">
+    🔁 test.beforeEach runs
+    <div class="sub">Creates LoginPage · calls goto() · opens the browser</div>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- POM -->
+  <div class="box pom">
+    📄 LoginPage.js (Page Object)
+    <div class="sub">Finds elements by #id · .class · role · label</div>
+    <span class="chip chip-purple">LOCATORS &amp; ACTIONS</span>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- BROWSER -->
+  <div class="box browser">
+    🌐 Real Browser Opens (Chromium)
+    <div class="sub">Navigates to URL · renders the page</div>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- ACTIONS -->
+  <div class="box action">
+    🖱️ Actions Execute (one by one)
+    <div class="sub">fill username → fill password → click Submit</div>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- ASSERT -->
+  <div class="box assert">
+    ✅ expect() Assertions Run
+    <div class="sub">Check URL · text · visibility · value</div>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- FORK -->
+  <div style="display:flex; align-items:center; gap:0;">
+    <!-- left branch line -->
+    <div style="width:100px; height:2px; background:#334155;"></div>
+    <!-- center down line -->
+    <div style="width:2px; height:0px; background:#334155;"></div>
+    <!-- right branch line -->
+    <div style="width:100px; height:2px; background:#334155;"></div>
+  </div>
+
+  <div class="fork">
+    <!-- PASS -->
+    <div class="fork-branch">
+      <div class="fork-line"></div>
+      <div class="fork-head"></div>
+      <div class="box pass" style="min-width:180px;">
+        ✅ PASS
+        <div class="sub">Test marked green<br/>Moves to next test</div>
+      </div>
+    </div>
+    <!-- FAIL -->
+    <div class="fork-branch">
+      <div class="fork-line"></div>
+      <div class="fork-head"></div>
+      <div class="box fail" style="min-width:180px;">
+        ❌ FAIL
+        <div class="sub">Screenshot saved<br/>Error shown in terminal</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DETAIL CARDS -->
+<div class="details">
+  <div class="detail-card c1">
+    <h3>⚙️ Config Options</h3>
+    <ul>
+      <li>Browser <span>chromium / firefox / webkit</span></li>
+      <li>headless <span>true = hidden, false = visible</span></li>
+      <li>slowMo <span>delay between actions (ms)</span></li>
+      <li>timeout <span>max time per test</span></li>
+      <li>baseURL <span>root URL of your site</span></li>
+      <li>retries <span>retry count on failure</span></li>
+    </ul>
+  </div>
+  <div class="detail-card c2">
+    <h3>📄 Locator Types</h3>
+    <ul>
+      <li>By ID <span>#username</span></li>
+      <li>By class <span>.submit-btn</span></li>
+      <li>By role <span>getByRole('button')</span></li>
+      <li>By label <span>getByLabel('Email')</span></li>
+      <li>By text <span>getByText('Login')</span></li>
+      <li>By placeholder <span>getByPlaceholder('...')</span></li>
+    </ul>
+  </div>
+  <div class="detail-card c3">
+    <h3>✅ Assertion Types</h3>
+    <ul>
+      <li>Visible <span>toBeVisible()</span></li>
+      <li>Hidden <span>toBeHidden()</span></li>
+      <li>URL check <span>toHaveURL(/pattern/)</span></li>
+      <li>Text match <span>toHaveText('...')</span></li>
+      <li>Partial text <span>toContainText('...')</span></li>
+      <li>Input value <span>toHaveValue('')</span></li>
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>
