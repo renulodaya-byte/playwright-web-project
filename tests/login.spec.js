@@ -17,11 +17,14 @@
 const { test, expect } = require("@playwright/test");
 const { LoginPage } = require("../pages/LoginPage");
 
-// ─── Test Data ───────────────────────────────────────────────
-const VALID_USERNAME   = "student";
-const VALID_PASSWORD   = "Password123";
-const WRONG_PASSWORD   = "wrongpassword";
-const WRONG_USERNAME   = "incorrectUser";
+// ─── Test Data (imported from /test-data) ────────────────────
+const {
+  VALID_USERNAME,
+  VALID_PASSWORD,
+  WRONG_USERNAME,
+  WRONG_PASSWORD,
+} = require("../test-data/credentials");
+const { FAILED_LOGIN_SCENARIOS } = require("../test-data/login-scenarios");
 
 // ─── Setup: runs before each test ────────────────────────────
 let loginPage;
@@ -81,25 +84,22 @@ test.describe("Successful Login", () => {
 });
 
 // ============================================================
-// 3. FAILED LOGIN
-//    → Wrong credentials should show an error message
+// 3. FAILED LOGIN — DATA-DRIVEN
+//    → One test, many scenarios. Loops over FAILED_LOGIN_SCENARIOS
+//      from test-data/login-scenarios.js
+//    → Add a new failure case by adding a row to that file
 // ============================================================
-test.describe("Failed Login", () => {
+test.describe("Failed Login Scenarios", () => {
 
-  test("wrong password shows error message", async () => {
-    await loginPage.doLogin(VALID_USERNAME, WRONG_PASSWORD);
+  // for...of generates one test per scenario row
+  for (const scenario of FAILED_LOGIN_SCENARIOS) {
+    test(`rejects login: ${scenario.name}`, async () => {
+      await loginPage.doLogin(scenario.username, scenario.password);
 
-    // ASSERTION: error element is visible with correct text
-    await expect(loginPage.errorMessage).toBeVisible();
-    await expect(loginPage.errorMessage).toContainText("Your password is invalid!");
-  });
-
-  test("wrong username shows error message", async () => {
-    await loginPage.doLogin(WRONG_USERNAME, VALID_PASSWORD);
-
-    await expect(loginPage.errorMessage).toBeVisible();
-    await expect(loginPage.errorMessage).toContainText("Your username is invalid!");
-  });
+      await expect(loginPage.errorMessage).toBeVisible();
+      await expect(loginPage.errorMessage).toContainText(scenario.error);
+    });
+  }
 
 });
 
@@ -208,49 +208,7 @@ test.describe("Field Attributes", () => {
 });
 
 // ============================================================
-// 8. CASE SENSITIVITY
-//    → LESSON: Credentials should be case-sensitive — uppercase
-//      versions of valid creds must NOT log the user in
-// ============================================================
-test.describe("Case Sensitivity", () => {
-
-  test("uppercase username is rejected", async () => {
-    await loginPage.doLogin(VALID_USERNAME.toUpperCase(), VALID_PASSWORD);
-    await expect(loginPage.errorMessage).toBeVisible();
-    await expect(loginPage.errorMessage).toContainText("Your username is invalid!");
-  });
-
-  test("uppercase password is rejected", async () => {
-    await loginPage.doLogin(VALID_USERNAME, VALID_PASSWORD.toUpperCase());
-    await expect(loginPage.errorMessage).toBeVisible();
-    await expect(loginPage.errorMessage).toContainText("Your password is invalid!");
-  });
-
-});
-
-// ============================================================
-// 9. INPUT VALIDATION
-//    → LESSON: Whitespace shouldn't sneak through — leading/trailing
-//      spaces in credentials should fail authentication
-// ============================================================
-test.describe("Input Validation", () => {
-
-  test("trailing whitespace in username is rejected", async () => {
-    await loginPage.doLogin(VALID_USERNAME + " ", VALID_PASSWORD);
-    await expect(loginPage.errorMessage).toBeVisible();
-    await expect(loginPage.errorMessage).toContainText("Your username is invalid!");
-  });
-
-  test("leading whitespace in username is rejected", async () => {
-    await loginPage.doLogin(" " + VALID_USERNAME, VALID_PASSWORD);
-    await expect(loginPage.errorMessage).toBeVisible();
-    await expect(loginPage.errorMessage).toContainText("Your username is invalid!");
-  });
-
-});
-
-// ============================================================
-// 10. RECOVERY FLOW
+// 8. RECOVERY FLOW
 //    → LESSON: After a failed login, the user should still be able
 //      to log in with correct credentials (no permanent block)
 // ============================================================
