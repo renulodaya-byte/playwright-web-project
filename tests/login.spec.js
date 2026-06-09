@@ -183,3 +183,92 @@ test.describe("End-to-End Flow", () => {
   });
 
 });
+
+// ============================================================
+// 7. FIELD ATTRIBUTES
+//    → LESSON: Verify HTML attributes — important for accessibility
+//      and security (password should be masked, not plain text)
+// ============================================================
+test.describe("Field Attributes", () => {
+
+  test("password field masks input (type='password')", async () => {
+    // toHaveAttribute checks an HTML attribute value
+    await expect(loginPage.passwordInput).toHaveAttribute("type", "password");
+  });
+
+  test("username field is a text input (type='text')", async () => {
+    await expect(loginPage.usernameInput).toHaveAttribute("type", "text");
+  });
+
+  test("submit button is enabled on page load", async () => {
+    // toBeEnabled — button can be clicked (not disabled)
+    await expect(loginPage.submitButton).toBeEnabled();
+  });
+
+});
+
+// ============================================================
+// 8. CASE SENSITIVITY
+//    → LESSON: Credentials should be case-sensitive — uppercase
+//      versions of valid creds must NOT log the user in
+// ============================================================
+test.describe("Case Sensitivity", () => {
+
+  test("uppercase username is rejected", async () => {
+    await loginPage.doLogin(VALID_USERNAME.toUpperCase(), VALID_PASSWORD);
+    await expect(loginPage.errorMessage).toBeVisible();
+    await expect(loginPage.errorMessage).toContainText("Your username is invalid!");
+  });
+
+  test("uppercase password is rejected", async () => {
+    await loginPage.doLogin(VALID_USERNAME, VALID_PASSWORD.toUpperCase());
+    await expect(loginPage.errorMessage).toBeVisible();
+    await expect(loginPage.errorMessage).toContainText("Your password is invalid!");
+  });
+
+});
+
+// ============================================================
+// 9. INPUT VALIDATION
+//    → LESSON: Whitespace shouldn't sneak through — leading/trailing
+//      spaces in credentials should fail authentication
+// ============================================================
+test.describe("Input Validation", () => {
+
+  test("trailing whitespace in username is rejected", async () => {
+    await loginPage.doLogin(VALID_USERNAME + " ", VALID_PASSWORD);
+    await expect(loginPage.errorMessage).toBeVisible();
+    await expect(loginPage.errorMessage).toContainText("Your username is invalid!");
+  });
+
+  test("leading whitespace in username is rejected", async () => {
+    await loginPage.doLogin(" " + VALID_USERNAME, VALID_PASSWORD);
+    await expect(loginPage.errorMessage).toBeVisible();
+    await expect(loginPage.errorMessage).toContainText("Your username is invalid!");
+  });
+
+});
+
+// ============================================================
+// 10. RECOVERY FLOW
+//    → LESSON: After a failed login, the user should still be able
+//      to log in with correct credentials (no permanent block)
+// ============================================================
+test.describe("Recovery Flow", () => {
+
+  test("user can retry with correct password after a failed attempt", async ({ page }) => {
+    // STEP 1: Fail login first
+    await loginPage.doLogin(VALID_USERNAME, WRONG_PASSWORD);
+    await expect(loginPage.errorMessage).toContainText("Your password is invalid!");
+
+    // STEP 2: Clear fields and retry with correct creds
+    await loginPage.usernameInput.fill("");
+    await loginPage.passwordInput.fill("");
+    await loginPage.doLogin(VALID_USERNAME, VALID_PASSWORD);
+
+    // STEP 3: Should succeed
+    await expect(page).toHaveURL(/.*logged-in-successfully/);
+    await expect(loginPage.successHeading).toHaveText("Logged In Successfully");
+  });
+
+});
